@@ -8,11 +8,11 @@ import subprocess
 import importlib.util
 import sys
 import json
-#import pty      //disable this on live server
+import pty      
 import select
-#import termios  //disable this on live server
+import termios  
 import struct
-#import fcntl     //disable this on live server
+import fcntl     
 import subprocess
 import argparse
 from datetime import datetime
@@ -155,23 +155,23 @@ def get_server_ip():
 
 def get_server_info():
     # For demonstration purposes, return mock data
-    #cpu_info = subprocess.check_output("lscpu", shell=True).decode()
-   # memory_info = subprocess.check_output("free -m", shell=True).decode()
-    #disk_usage = subprocess.check_output("df -h", shell=True).decode()
+    cpu_info = subprocess.check_output("lscpu", shell=True).decode()
+    memory_info = subprocess.check_output("free -m", shell=True).decode()
+    disk_usage = subprocess.check_output("df -h", shell=True).decode()
    
    
    
-   return { # this file need to be disable when server is live
-        'mock_files'
-    }
+   #return { # this file need to be disable when server is live
+        #'mock_files'
+    #}
    ## end server detail mock_files
    
    ### use this on liver server for real live server
-    #return {
-        #'cpu_info': cpu_info,
-        #'memory_info': memory_info,
-        #'disk_usage': disk_usage
-    #}
+    return {
+        'cpu_info': cpu_info,
+        'memory_info': memory_info,
+        'disk_usage': disk_usage
+    }
       ## end server detail mock_files
     
 
