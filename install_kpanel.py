@@ -18,7 +18,7 @@ def clone_repo():
     print("Cloning repository...")
     run_command("git clone https://github.com/amatak-org/kpanel_v1.git")
     run_command("unzip kpanel_v1-main.zip")
-    os.chdir("kpanel_v1-main")
+    os.chdir("kpanel_v1")
 
 def install_requirements():
     print("Installing requirements...")
