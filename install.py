@@ -73,7 +73,7 @@ def main():
     setup_venv()
     clone_repo()
     copy_kpanel_functions()
-    generate_nginx_config()
+    generate_nginx_config(site_name)
     install_requirements()
     start_kpanel()
 
