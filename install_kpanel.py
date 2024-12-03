@@ -22,11 +22,11 @@ def clone_repo():
 
 def install_requirements():
     print("Installing requirements...")
-    run_command("pip install -r requirements.txt")
+    run_command("pip3 install -r requirements.txt")
 
 def start_kpanel():
     print("Starting kpanel...")
-    run_command("python kpanel.py")
+    run_command("python3 kpanel.py")
 
 def main():
     setup_venv()
