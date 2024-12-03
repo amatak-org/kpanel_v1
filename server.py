@@ -12,9 +12,9 @@ import pty
 import select
 import termios  
 import struct
-import fcntl     
-import subprocess
+import fcntl 
 import argparse
+import time
 from datetime import datetime
 from flask import Flask, request, redirect, url_for, flash, render_template_string, send_from_directory,render_template,render_template, session, jsonify
 from werkzeug.utils import secure_filename
@@ -330,7 +330,41 @@ def control_nginx():
 
     return redirect(url_for('index'))
 
+
+
+def run_command(command):
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    output, error = process.communicate()
+    return output.decode('utf-8'), error.decode('utf-8')
+
+def install_nginx():
+    steps = [
+        "sudo apt update",
+        "sudo apt install -y nginx",
+        "sudo ufw app list",
+        "sudo ufw allow 'Nginx HTTP'",
+        "sudo ufw status",
+        "systemctl status nginx"
+    ]
+    results = []
+    for step in steps:
+        output, error = run_command(step)
+        results.append({
+            'command': step,
+            'output': output,
+            'error': error
+        })
+        time.sleep(1)  # To simulate longer process
+    return results
+
+@app.route('/plugins_install_nginx')
+def plugins_install_nginx():
+    nginx_install_results = install_nginx()
+    return render_template('plugins/install_nginx.html', nginx_install_results=nginx_install_results)
+
 # end Nginx
+
+
 
 
 ###Console App
