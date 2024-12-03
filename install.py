@@ -4,6 +4,7 @@ import subprocess
 import sys
 import socket
 import shutil
+
 def run_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output, error = process.communicate()
@@ -71,6 +72,8 @@ def start_kpanel():
 def main():
     setup_venv()
     clone_repo()
+    copy_kpanel_functions()
+    generate_nginx_config()
     install_requirements()
     start_kpanel()
 
