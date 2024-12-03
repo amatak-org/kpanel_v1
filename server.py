@@ -458,3 +458,10 @@ def website():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    
+     # Allow port 5000 through UFW
+    subprocess.run(["sudo", "ufw", "allow", "5000"])
+    
+    app.run(host=ip_address, port=5000)
