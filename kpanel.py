@@ -9,8 +9,11 @@ import psutil
 import configparser
 import getpass
 import re
+import shutil
 
 CONFIG_FILE = 'kpanel_config.ini'
+NGINX_SITES_AVAILABLE = '/etc/nginx/sites-available/'
+NGINX_SITES_ENABLED = '/etc/nginx/sites-enabled/'
 
 def load_config():
     config = configparser.ConfigParser()
@@ -162,6 +165,107 @@ def bind_ip_address():
         else:
             print("Invalid IP address format. Please try again.")
 
+def create_website():
+    domain = input("Enter the domain name for the new website: ")
+    environment = input("Select environment (nodejs/python/other): ").lower()
+
+    # Create website directory
+    web_dir = f"/var/www/{domain}"
+    os.makedirs(web_dir, exist_ok=True)
+
+    # Set up environment
+    if environment == "nodejs":
+        setup_nodejs(web_dir)
+    elif environment == "python":
+        setup_python(web_dir)
+    else:
+        print(f"Setting up a basic environment for {environment}")
+        with open(f"{web_dir}/index.html", 'w') as f:
+            f.write(f"<h1>Welcome to {domain}</h1>")
+
+    # Set up Nginx configuration
+    nginx_config = f"""
+    server {{
+        listen 80;
+        server_name {domain};
+        root {web_dir};
+        index index.html index.htm;
+
+        location / {{
+            try_files $uri $uri/ =404;
+        }}
+    }}
+    """
+
+    with open(f"{NGINX_SITES_AVAILABLE}{domain}", 'w') as f:
+        f.write(nginx_config)
+
+    # Enable the site
+    os.symlink(f"{NGINX_SITES_AVAILABLE}{domain}", f"{NGINX_SITES_ENABLED}{domain}")
+
+    # Reload Nginx
+    subprocess.run(["sudo", "nginx", "-s", "reload"])
+
+    print(f"Website {domain} created successfully!")
+
+def setup_nodejs(web_dir):
+    if shutil.which("node") is None:
+        print("Node.js not found. Installing...")
+        subprocess.run(["sudo", "apt", "update"])
+        subprocess.run(["sudo", "apt", "install", "nodejs", "npm", "-y"])
+    
+    # Initialize a new Node.js project
+    os.chdir(web_dir)
+    subprocess.run(["npm", "init", "-y"])
+    
+    # Install Express.js
+    subprocess.run(["npm", "install", "express"])
+    
+    # Create a basic Express.js app
+    with open(f"{web_dir}/app.js", 'w') as f:
+        f.write('''
+const express = require('express');
+const app = express();
+const port = 3000;
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+app.listen(port, () => {
+  console.log(`App listening at http://localhost:${port}`);
+});
+        ''')
+
+def setup_python(web_dir):
+    if shutil.which("python3") is None:
+        print("Python3 not found. Installing...")
+        subprocess.run(["sudo", "apt", "update"])
+        subprocess.run(["sudo", "apt", "install", "python3", "python3-pip", "-y"])
+    
+    # Create a virtual environment
+    subprocess.run(["python3", "-m", "venv", f"{web_dir}/venv"])
+    
+    # Activate the virtual environment and install Flask
+    activate_this = f"{web_dir}/venv/bin/activate_this.py"
+    exec(open(activate_this).read(), {'__file__': activate_this})
+    
+    subprocess.run(["pip", "install", "flask"])
+    
+    # Create a basic Flask app
+    with open(f"{web_dir}/app.py", 'w') as f:
+        f.write('''
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0')
+        ''')
+
 def main():
     parser = argparse.ArgumentParser(description="KPanel Management Tool")
     parser.add_argument("command", nargs="?", help="Command to execute")
@@ -188,9 +292,10 @@ def main():
             print("7. Reset username")
             print("8. Reset password")
             print("9. Bind IP address")
+            print("10. Create new website")
             print("0. Exit")
 
-            choice = input("Enter your choice (0-9): ")
+            choice = input("Enter your choice (0-10): ")
 
             if choice == "1":
                 start_server()
@@ -210,6 +315,8 @@ def main():
                 reset_password()
             elif choice == "9":
                 bind_ip_address()
+            elif choice == "10":
+                create_website()
             elif choice == "0":
                 print("Exiting KPanel Management Tool.")
                 break
