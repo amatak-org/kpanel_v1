@@ -32,12 +32,12 @@ def copy_kpanel_functions():
     except Exception as e:
         return f"Error copying folder: {str(e)}"
 
-def generate_nginx_config(site_name):
+def generate_nginx_config():
     config_content = f"""
     server {{
         listen 80;
-        server_name {site_name};
-        root /var/www/{site_name};
+        server_name kpanel;
+        root /var/www/kpanel;
         index index.html index.htm index.nginx-debian.html;
 
         location / {{
@@ -45,8 +45,8 @@ def generate_nginx_config(site_name):
         }}
     }}
     """
-    config_path = f"/etc/nginx/sites-available/{site_name}.conf"
-    enabled_path = f"/etc/nginx/sites-enabled/{site_name}.conf"
+    config_path = f"/etc/nginx/sites-available/kpanel.conf"
+    enabled_path = f"/etc/nginx/sites-enabled/kpanel.conf"
     
     try:
         with open(config_path, 'w') as f:
@@ -57,7 +57,7 @@ def generate_nginx_config(site_name):
         run_command("sudo nginx -t")
         run_command("sudo systemctl reload nginx")
         
-        return f"Nginx configuration for {site_name} created and enabled."
+        return f"Nginx configuration for kpanel created and enabled."
     except Exception as e:
         return f"Error creating Nginx con"
 
@@ -73,7 +73,7 @@ def main():
     setup_venv()
     clone_repo()
     copy_kpanel_functions()
-    generate_nginx_config(site_name)
+    generate_nginx_config()
     install_requirements()
     start_kpanel()
 
