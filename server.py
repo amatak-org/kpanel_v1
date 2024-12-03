@@ -92,8 +92,8 @@ APPSTORE = [
 NODEJS_VERSIONS = ['14.x', '16.x', '18.x']
 
 
-def get_files_and_folders(base_folder):
-    return mock_files  # Return mock data inst
+#def get_files_and_folders(base_folder):
+    #return mock_files  # Return mock data inst
 
 @app.route('/demo')
 def demo():
