@@ -41,28 +41,28 @@ ALLOWED_EXTENSIONS = {'txt', 'py', 'html', 'css', 'js', 'md', 'xlsm', 'md','pdf'
 
 ### k panel curret app version
 CURRENT_VERSION = '1.0.1'
-GITHUB_API_URL = "https://api.github.com/repos/yourusername/yourrepo/releases/latest"  # Update with your repo
+GITHUB_API_URL = "https://api.github.com/repos/amatak-org/kpanel_v1/releases/latest"  # Update with your repo
 
 
 
 # Sample websites data
-WEBSITES = ['example.com', 'test.com', 'mysite.org']
+#WEBSITES = ['example.com', 'test.com', 'mysite.org']
 
 
 ###FOR DEMO ####
 # Mock user data for testing
-app.config['USER_DATA'] = {
-    'user1': generate_password_hash('password1'),
-    'user2': generate_password_hash('password2')
-}
+#app.config['USER_DATA'] = {
+    #'user1': generate_password_hash('password1'),
+    #'user2': generate_password_hash('password2')
+#}
 
 # Mock file system structure for testing
-mock_files = [
-    {'type': 'file', 'name': 'document1.txt', 'extension': 'txt', 'permissions': '-rw-r--r--'},
-    {'type': 'file', 'name': 'script.py', 'extension': 'py', 'permissions': '-rw-r--r--'},
-    {'type': 'folder', 'name': 'Subfolder1', 'permissions': 'drwxr-xr-x'},
-    {'type': 'folder', 'name': 'Subfolder2', 'permissions': 'drwxr-xr-x'},
-]
+#mock_files = [
+   # {'type': 'file', 'name': 'document1.txt', 'extension': 'txt', 'permissions': '-rw-r--r--'},
+   # {'type': 'file', 'name': 'script.py', 'extension': 'py', 'permissions': '-rw-r--r--'},
+    #{'type': 'folder', 'name': 'Subfolder1', 'permissions': 'drwxr-xr-x'},
+    #{'type': 'folder', 'name': 'Subfolder2', 'permissions': 'drwxr-xr-x'},
+#]
 
 
 # Sample app store data
@@ -389,7 +389,7 @@ def new_version():
 @app.route('/check_for_updates')
 def check_for_updates():
     # Replace with your real GitHub repository URL
-    response = requests.get("https://api.github.com/repos/yourusername/yourrepo/releases/latest")
+    response = requests.get("https://api.github.com/repos/amatak-org/kpanel_v1/releases/latest")
     if response.status_code == 200:
         latest_version = response.json()['tag_name']
         return latest_version if latest_version != CURRENT_VERSION else None
