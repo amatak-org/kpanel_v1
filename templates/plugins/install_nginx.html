@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Installation</title>
+    <script>
+        window.onload = function() {
+            var results = {{ nginx_install_results|tojson }};
+            var message = "Installation Progress:\\n\\n";
+            results.forEach(function(result) {
+                message += "Command: " + result.command + "\\n";
+                message += "Output: " + result.output + "\\n";
+                if (result.error) {
+                    message += "Error: " + result.error + "\\n";
+                }
+                message += "\\n";
+            });
+            alert(message);
+        }
+    </script>
+</head>
+<body>
+    <h1>Welcome to the App Installation Page</h1>
+    <p>Please check the alert for installation progress...</p>
+</body>
+</html>

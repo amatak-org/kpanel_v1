@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link stylesheet href ="https://necolas.github.io/normalize.css/8.0.1/normalize.css">
+    <title>Amatak Panel.</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .container {
+            display: flex;
+            flex-grow: 1;
+    
+        .sidebar {
+            background-color: #ecf0f1;
+            width: 200px;
+            padding: 20px;
+            height: 100%;
+        }
+        .sidebar a {
+            color: #333;
+            text-decoration: none;
+            padding: 10px;
+            display: block;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .sidebar a:hover {
+            background-color: #ddd;
+        }
+        .content {
+            padding: 20px;
+            flex-grow: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input[type="submit"] {
+            padding: 5px 10px;
+            margin-top: 20px;
+        }
+       
+         .popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #ccc;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .app-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .app-card img {
+            max-width: 100%;
+            height: auto;
+        }
+        .install-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        #notification-btn {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    {% include 'header.html' %}
+
+    <div class="container">
+    
+       <!---Sidebar Menu-->
+        <div class="sidebar">
+            <h3>Manage Files</h3>
+            <a href="{{ url_for('index') }}">🏠 Home</a>
+            <h3>Website Manager</h3>
+            <a href="website" onclick="showDatabaseManager()">Website</a>
+            <a href="#" onclick="document.getElementById('nginx-manager').style.display='block'">⚙️ Nginx Control</a>
+            <a href="#console" onclick="document.getElementById('console').style.display='block'">💻 Open Console</a>
+            <a href="database" onclick="showDatabaseManager()">Database</a>
+            <a href="appstore" onclick="showAppStore()">App Store</a>
+           
+        </div>
+
+         <!---website-->
+        <div class="container">
+            <div class="content">
+                <div id="files" class="tabcontent">
+                    <h2>Website Files</h2>
+                    <select id="website-select" onchange="loadWebsiteFiles()">
+                        {% for website in websites %}
+                            <option value="{{ website }}">{{ website }}</option>
+                        {% endfor %}
+                    </select>
+                    <div id="website-files"></div>
+                </div>
+                
+                <!--tab menu-->
+                <div id="nginx" class="tabcontent">
+                    <h2>Nginx Configuration</h2>
+                    <button onclick="editNginxConfig()">Edit Nginx Config</button>
+                    <button onclick="manageSSL()">Manage SSL</button>
+                </div>
+                
+                <div id="python" class="tabcontent">
+                    <h2>Python Environment</h2>
+                    <select id="python-website-select">
+                        {% for website in websites %}
+                            <option value="{{ website }}">{{ website }}</option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="setupPythonEnv()">Setup Python Environment</button>
+                </div>
+                
+                <div id="nodejs" class="tabcontent">
+                    <h2>Node.js Installation</h2>
+                    <select id="nodejs-version-select">
+                        {% for version in nodejs_versions %}
+                            <option value="{{ version }}">{{ version }}</option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="installNodejs()">Install Node.js</button>
+                </div>
+                
+                <div id="ufw" class="tabcontent">
+                    <h2>UFW Firewall</h2>
+                    <input type="text" id="port-number" placeholder="Enter port number">
+                    <button onclick="allowPort()">Allow Port</button>
+                </div>
+
+                <!---Ngin config-->
+                <div id="nginx-manager" style="display:none;">
+                    <h3>Nginx Control</h3>
+                    <form method="POST" action="{{ url_for('control_nginx') }}">
+                        <input type="submit" name="action" value="Start Nginx">
+                        <input type="submit" name="action" value="Stop Nginx">
+                        <input type="submit" name="action" value="Restart Nginx">
+                    </form>
+                </div>     <!---Ngin config-->
+            </div>
+
+        <!---Server Information-->
+        <div class="content">
+            <h2>Server Information</h2>
+            <p><strong>Server IP Address:</strong> {{ server_ip }}</p>
+            <p><strong>CPU Info:</strong> {{ server_info.cpu_info }}</p>
+            <p><strong>Memory Info:</strong> {{ server_info.memory_info }}</p>
+            <p><strong>Disk Usage:</strong> {{ server_info.disk_usage }}</p>
+
+            <!---Server Information-->
+            <h2>Files and Folders</h2>
+            <form method="post" enctype="multipart/form-data" action="{{ url_for('upload_file_action') }}">
+                <input type="file" name="file" required>
+                <input type="submit" value="Upload">
+            </form>
+            <form method="POST" action="{{ url_for('perform_action') }}">
+                <table>
+                    <tr>
+                        <th>Select</th>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>File Extension</th>
+                        <th>Permissions</th>
+                        <th>Actions</th>
+                    </tr>
+                    {% for item in items %}
+                    <tr>
+                        <td><input type="checkbox" name="selected_items" value="{{ item.name }}"></td>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ item.type }}</td>
+                        <td>
+                            {% if item.type == 'file' %}
+                                <a href="{{ url_for('view_file', filename=item.name) }}">{{ item.name }}</a>
+                            {% else %}
+                                <a href="{{ url_for('view_folder', foldername=item.name) }}">{{ item.name }}</a>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.extension if item.type == 'file' else '-' }}</td>
+                        <td>{{ item.permissions }}</td>
+                        <td>
+                            <button type="button" onclick="showPermissionsPopup('{{ item.name }}')" >Permissions</button>
+    
+                            </form>
+                                <input type="checkbox" name="selected_items" value="{{ item.name }}" style="display:none;">
+                                <input type="submit" name="action" value="Delete" onclick="return confirm('Are you sure you want to delete this item?');">
+                            </form>
+                            {% if item.type == 'file' %}
+                                <form method="POST" action="{{ url_for('zip_file', filename=item.name) }}" style="display:inline;">
+                                    <input type="submit" value="Zip">
+                                </form>
+                                <form method="POST" action="{{ url_for('unzip_file', filename=item.name) }}" style="display:inline;">
+                                    <input type="submit" value="Unzip">
+                                </form>
+                                <form method="POST" action="{{ url_for('download_file', filename=item.name) }}" style="display:inline;">
+                                    <input type="submit" value="Download">
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </form>
+                <!---Ngin config-->
+          
+            
+            
+                <!---Terminal-->
+            <div id="console" style="display:none;">
+                <h3>k Panel Console</h3>
+                <textarea id="code_area" placeholder="Enter your Python code here..."></textarea><br>
+                <input type="button" value="Run Code" onclick="runCode()">
+                <pre id="console_output"></pre>
+            </div>
+            
+            <!---permission button-->
+            <div class="overlay" id="overlay"></div>
+    <div class="popup" id="popup">
+        <h3>Change Permissions for <span id="item-name"></span></h3>
+        <select id="permissions-select">
+            <option value="read_write">Read & Write</option>
+            <option value="read_only">Read Only</option>
+            <option value="no_access">No Access</option>
+        </select>
+        <br><br>
+        <button onclick="changePermissions()">Apply</button>
+        <button onclick="closePopup()">Cancel</button>
+    </div>
+
+    <script>
+        function showPermissionsPopup(itemName) {
+            document.getElementById("item-name").innerText = itemName;
+            document.getElementById("overlay").style.display = "block";
+            document.getElementById("popup").style.display = "block";
+        }
+        
+        function closePopup() {
+            document.getElementById("overlay").style.display = "none";
+            document.getElementById("popup").style.display = "none";
+        }
+
+        function changePermissions() {
+            const itemName = document.getElementById("item-name").innerText;
+            const selectedPermission = document.getElementById("permissions-select").value;
+            // Call the endpoint to change permissions (this functionality needs to be implemented on the server)
+            alert(`Changing permissions for ${itemName} to ${selectedPermission}`);
+            closePopup();
+        }
+    </script>
+
+    <!---Panel Verson Checking-->
+    {% if new_version %}
+    <script>
+        alert("KPanel new version {{ new_version }} is available. Please check out and update to the current version.");
+    </script>
+    {% endif %}
+       
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <!--appstore & database-->
+    <div id="app-store" style="display:none;">
+        <h2>App Store</h2>
+        <div class="app-grid">
+            {% for app in appstore %}
+            <div class="app-card">
+                <img src="{{ app.image }}" alt="{{ app.title }}">
+                <h3>{{ app.title }}</h3>
+                <p>{{ app.description }}</p>
+                <button class="install-btn" onclick="installApp('{{ app.install_command }}')">Install</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div id="database-manager" style="display:none;">
+        <h2>Database Manager</h2>
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, 'Create')">Create</button>
+            <button class="tablinks" onclick="openTab(event, 'Delete')">Delete</button>
+            <button class="tablinks" onclick="openTab(event, 'UpdatePassword')">Update Password</button>
+            <button class="tablinks" onclick="openTab(event, 'ResetRoot')">Reset Root Password</button>
+            <button class="tablinks" onclick="openTab(event, 'SSL')">SSL</button>
+        </div>
+
+        <div id="Create" class="tabcontent">
+            <h3>Create Database</h3>
+            <input type="text" id="create-db-name" placeholder="Database Name">
+            <button onclick="createDatabase()">Create</button>
+        </div>
+
+        <div id="Delete" class="tabcontent">
+            <h3>Delete Database</h3>
+            <input type="text" id="delete-db-name" placeholder="Database Name">
+            <button onclick="deleteDatabase()">Delete</button>
+        </div>
+
+        <div id="UpdatePassword" class="tabcontent">
+            <h3>Update Password</h3>
+            <input type="text" id="update-password-db" placeholder="Database Name">
+            <input type="password" id="new-password" placeholder="New Password">
+            <button onclick="updatePassword()">Update</button>
+        </div>
+
+        <div id="ResetRoot" class="tabcontent">
+            <h3>Reset Root Password</h3>
+            <input type="password" id="new-root-password" placeholder="New Root Password">
+            <button onclick="resetRootPassword()">Reset</button>
+        </div>
+
+        <div id="SSL" class="tabcontent">
+            <h3>SSL Configuration</h3>
+            <button onclick="configureSSL()">Configure SSL</button>
+        </div>
+
+        <h3>Apply to Website</h3>
+        <select id="website-select">
+            {% for website in websites %}
+                <option value="{{ website }}">{{ website }}</option>
+            {% endfor %}
+        </select>
+        <button onclick="applyToWebsite()">Apply</button>
+    </div>
+</div>
+</div>
+<script>
+function showAppStore() {
+    document.getElementById('file-management').style.display = 'none';
+    document.getElementById('app-store').style.display = 'block';
+    document.getElementById('database-manager').style.display = 'none';
+}
+
+function showDatabaseManager() {
+    document.getElementById('file-management').style.display = 'none';
+    document.getElementById('app-store').style.display = 'none';
+    document.getElementById('database-manager').style.display = 'block';
+}
+
+function installApp(command) {
+    fetch('/install_app', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({command: command}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+
+function createDatabase() {
+    var dbName = document.getElementById('create-db-name').value;
+    // Add logic to create database
+    alert('Creating database: ' + dbName);
+}
+
+function deleteDatabase() {
+    var dbName = document.getElementById('delete-db-name').value;
+    // Add logic to delete database
+    alert('Deleting database: ' + dbName);
+}
+
+function updatePassword() {
+    var dbName = document.getElementById('update-password-db').value;
+    var newPassword = document.getElementById('new-password').value;
+    // Add logic to update password
+    alert('Updating password for database: ' + dbName);
+}
+
+function resetRootPassword() {
+    var newRootPassword = document.getElementById('new-root-password').value;
+    // Add logic to reset root password
+    alert('Resetting root password');
+}
+
+function configureSSL() {
+    // Add logic to configure SSL
+    alert('Configuring SSL');
+}
+
+function applyToWebsite() {
+    var website = document.getElementById('website-select').value;
+    // Add logic to apply database changes to selected website
+    alert('Applying changes to website: ' + website);
+}
+</script>
+
+<!--For Nitc Script-->
+
+<div id="notificationModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeNotification()">&times;</span>
+        <p id="notification-text"></p>
+        <a href="https://github.com/amatak-org/opensource-app" target="_blank">More information</a>
+    </div>
+</div>
+
+<script>
+    // Your existing JavaScript functions here
+
+    function showNotification() {
+        var modal = document.getElementById("notificationModal");
+        var notificationText = document.getElementById("notification-text");
+        notificationText.innerHTML = `{{ notification|safe }}`;
+        modal.style.display = "block";
+    }
+
+    function closeNotification() {
+        var modal = document.getElementById("notificationModal");
+        modal.style.display = "none";
+    }
+
+    window.onload = function() {
+        setTimeout(showNotification, 3000);
+    }
+
+    window.onclick = function(event) {
+        var modal = document.getElementById("notificationModal");
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+    <!---->
+
+</body>
+
+</body>
+{% include 'footer.html' %}
+</html>

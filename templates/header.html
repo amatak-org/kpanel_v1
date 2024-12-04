@@ -1,0 +1,83 @@
+
+<html>
+<header>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <a href="#" class="navbar-brand">
+        <img src="https://pub-3f83785b7aa64195b0afb81d8ef9ca5c.r2.dev/Images/Logo/favicon.ico" alt="Logo"></a>
+{% if logged_in %}
+<img src="https://via.placeholder.com/40" alt="Avatar" class="avatar" onclick="toggleDropdown()">
+<div class="dropdown" id="dropdown-menu">
+    <a href="#">{{ username }}</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+{% endif %}
+</header>
+<style>
+
+header {
+    background: #333;
+    color: white;
+    padding: 10px;
+    text-align: left;
+    position: relative;
+}
+.navbar-brand img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+.dropdown {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    display: none;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+.dropdown a {
+    display: block;
+    padding: 10px;
+    color: #333;
+    text-decoration: none;
+}
+.dropdown a:hover {
+    background: #f1f1f1;
+}
+.container {
+    display: flex;
+    flex-grow: 1;
+}
+
+</style>
+
+
+<script>
+    function toggleDropdown() {
+        var dropdown = document.getElementById("dropdown-menu");
+        dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.matches('.avatar')) {
+            var dropdown = document.getElementById("dropdown-menu");
+            dropdown.style.display = "none";
+        }
+    }
+</script>
+</head>
+<body>
+<header>
+    <h1>K Panel Linux Hosting Server.</h1>
+    {% if logged_in %}
+        <div style="position: absolute; right: 10px;">
+            <img src="{{ user_avatar }}" alt="Avatar" class="avatar" onclick="toggleDropdown()">
+            <div class="dropdown" id="dropdown-menu">
+                <a href="#">{{ username }}</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </div>
+    {% endif %}
+</header>
+</script>
+</html>
