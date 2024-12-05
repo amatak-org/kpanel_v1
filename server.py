@@ -15,10 +15,14 @@ import struct
 import fcntl 
 import argparse
 import time
+import tkinter as tk
+from tkinter import messagebox
+import threading
 from datetime import datetime
 from flask import Flask, request, redirect, url_for, flash, render_template_string, send_from_directory,render_template,render_template, session, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+
 
 
 
@@ -331,7 +335,7 @@ def control_nginx():
     return redirect(url_for('index'))
 
 
-
+# command install nginx
 def run_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output, error = process.communicate()
@@ -364,7 +368,43 @@ def plugins_install_nginx():
 
 # end Nginx
 
+@app.route('/start')
+def start():
+    return "Kpanel server is running!"
 
+def run_kpanel():
+    app.run(host='0.0.0.0', port=5000)
+
+def run_command(command):
+    try:
+        subprocess.run(command, shell=True, check=True)
+        messagebox.showinfo("Success", f"Command '{command}' executed successfully.")
+    except subprocess.CalledProcessError:
+        messagebox.showerror("Error", f"Failed to execute command: {command}")
+
+def stop_apache2_systemctl():
+    run_command("sudo systemctl stop apache2")
+
+def stop_apache2_service():
+    run_command("sudo service apache2 stop")
+
+def reload_apache2_service():
+    run_command("sudo service apache2 reload")
+
+def start_kpanel_server():
+    threading.Thread(target=run_kpanel, daemon=True).start()
+    messagebox.showinfo("Success", "Kapanel server started on port 5000")
+
+root = tk.Tk()
+root.title("Apache2 and Flask Control")
+root.geometry("300x250")
+
+tk.Button(root, text="Stop Apache2 (systemctl)", command=stop_apache2_systemctl).pack(pady=10)
+tk.Button(root, text="Stop Apache2 (service)", command=stop_apache2_service).pack(pady=10)
+tk.Button(root, text="Reload Apache2 (service)", command=reload_apache2_service).pack(pady=10)
+tk.Button(root, text="Start kpanel Server", command=start_kpanel_server).pack(pady=10)
+
+root.mainloop()
 
 
 ###Console App
